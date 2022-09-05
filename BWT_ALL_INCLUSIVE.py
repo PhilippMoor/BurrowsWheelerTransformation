@@ -1,5 +1,6 @@
 import math
 import random
+import time
 import matplotlib
 import matplotlib.pyplot as plt
 random.seed(1)
@@ -116,7 +117,8 @@ class Word():
     def analysis(self,word,analyzefactors = 0):
         if analyzefactors:
             self.find_factors(self.string)
-            string = f"The << {word.name} >> " \
+            string = f"The << {self.name} >> " \
+                     f"\n  - has string: {word.short}" \
                      f"\n  - has length: {len(word.string)}" \
                      f"\n  - has {word.number_of_runs} runs" \
                      f"\n  - has BWT: {word.bwt(word)[0].short}" \
@@ -129,6 +131,7 @@ class Word():
                      f"\n  - ratio palindromic factors to all: {int(round(len(word.pal_factors)/len(word.factors),2)*100)}% \n"
         else:
             string = f"The << {word.name} >> " \
+                     f"\n  - has string: {word.short}" \
                      f"\n  - has length: {len(word.string)}" \
                      f"\n  - has {word.number_of_runs} runs" \
                      f"\n  - has BWT: {word.bwt(word)[0].short}" \
@@ -137,11 +140,25 @@ class Word():
                      f"\n  - the run_compression_rate is: {word.compression_ratio()}%" \
                      f"\n  - the shortening_ratio is {word.shortening_ratio()}%\n"
         return string
+    def find_unique_consecutive_appearances(self):
+        self.find_factors(self.string)
+        double_factor_list = []
+        for factor in self.factors:
+            n = len(factor)
+            if not n%2 == 0:
+                continue
+            else:
+                if factor[:int(n/2)] == factor[int(n/2):]:
+                    if not factor[:int(n/2)] in double_factor_list:
+                        double_factor_list.append(factor[:int(n/2)])
+        return double_factor_list
+
+
 
 class CreateWord(Word):
     def randomword(alphabetlist = [],wordlength = 1,name=''):   #maybe add randomlength
         random_word = ''
-        for i in range(wordlength-1):
+        for i in range(wordlength):
             random_word += random.choice(alphabetlist)
         return Word(random_word,name)
     def morphismword(alphabetlist = [],morphismlist = [],start = '',number_of_iterations=1,name=''):
@@ -223,7 +240,6 @@ class CreateWord(Word):
                     new_string += x[1][:-1]
         new_string += input_string[-1]
         return str(new_string)
-
     def permutation_to_i(i):
         permutation_list = ["ABCD","DCBA","DABC","CBAD","CDAB","BADC","BCDA","ADCB"]
         #permutation_list = ["ABCD", "DCBA", "BCDA", "CBAD", "CDAB", "BADC", "DABC", "ADCB"]  #new version
@@ -267,70 +283,24 @@ class CreateWord(Word):
         repeated_word = input_word*number_of_rep
         return Word(repeated_word,name)
 
-#################################  EXAMPLES  ##################################
-fibonacci_word = CreateWord.morphismword(['a','b'],['ab','a'],'a',21,name='Fibonacci word')
-thue_morse_word = CreateWord.morphismword(['a','b'],['ab','ba'],'a',5,name='Thue Morse Word')
-tribonacci_word = CreateWord.morphismword(['a','b','c'],['ab','ac','a'],'a',5,name='Tribonacci word')
-tetranacci_word = CreateWord.morphismword(['a','b','c','d'],['ab','ac','ad','a'],'a',5,name='Tetranacci word')
-order_reversing_morphism = CreateWord.morphismword(['a','b','c'],['abacaba','abacab','abac'],'a',5,name='Order reversing word')
-composition_thue_sturmian = CreateWord.morphismword(['a','b'],['abba','ab'],'a',5,name='Composition Thue Sturmian')
-composition_sturmian_thue = CreateWord.morphismword(['a','b'],['aba','aab'],'a',5,name='Composition Sturmian Thue')
-last_example_conclusion = CreateWord.morphismword(['a','b'],['ababba','abba'],'a',5,name='last_example_conclusion')
-
-example_list = [fibonacci_word,thue_morse_word,tribonacci_word,tetranacci_word,order_reversing_morphism,composition_thue_sturmian,composition_sturmian_thue,last_example_conclusion]
-for word in example_list:
-    print(word.analysis(word,analyzefactors=0))
-
-#################################  INPUT EXAMPLE  ##################################
-example_word = Word('barbara','barbara')
-#print(example_word.bwt(example_word)[0].analysis(example_word))
-#print(example_word.bwt(example_word)[0].string)
-###################################################################################
-
-octagon_example_1 = CreateWord.octagonword([3,5,3,5,3,5],input_string="BA",name="octagon word 1 on s_i = 3,5,3,5,3,5 with init_string = BA") #initial example
-print(octagon_example_1.analysis(octagon_example_1,analyzefactors=0))
-octagon_example_2 = CreateWord.octagonword([3,5,5,1,7,2],input_string="BA",name="octagon word 2 on s_i = 3,5,5,1,7,2 with init_string = BA")
-print(octagon_example_2.analysis(octagon_example_2,analyzefactors=0))
-octagon_example_3 = CreateWord.octagonword([2,3,4,5,6,7],input_string="BA",name="octagon word 3 on s_i = 2,3,4,5,6,7 with init_string = BA")
-print(octagon_example_3.analysis(octagon_example_3,analyzefactors=0))
-
-octagon_example_4 = CreateWord.octagonword([3,5,4],input_string="BA",name="octagon word 4 on s_i = 3,5,4 with init_string = BA")
-print(octagon_example_4.analysis(octagon_example_4,analyzefactors=0))
-print(octagon_example_4.string)
-print(octagon_example_4.bwt(octagon_example_4)[0].string)
-#print(octagon_example.string)
-
-####################################### BINARY WORDS ############################################
-
-binary_example_1 = CreateWord.binary_word([2,1,3,1,3,2,3,2,3,2,2,2,2,2],input_string="ABABABBA",name="binary_word_1 on s_i = 2,1,3,1 with init_string = BA") #initial example
-print(binary_example_1.analysis(binary_example_1,analyzefactors=0))
-print(binary_example_1.string)
-print(binary_example_1.bwt(binary_example_1)[0].string)
-
-random_binary_1 = CreateWord.randomword(['a','b'],100,name="random binary 100 word")
-print(random_binary_1.analysis(random_binary_1,analyzefactors=0))
-
-#################################################################################################
-
-####################################### REPEATED WORDS ############################################
-
-repeat_word_1 = CreateWord.repetitionword(input_word="BBABBBAB",number_of_rep=1000,name="repeat word 1")
-print(repeat_word_1.analysis(repeat_word_1,analyzefactors=0))
-
-
-A = 1/math.pi
-B = 1/math.sqrt(5)
-C = 1-A-B
-
-print(f"ABC nodes: 0,{A},{A+B},1")
-print(f"CAB nodes: 0,{C},{A+C},1")
-print(f"BCA nodes: 0,{B},{B+C},1")
-
-t_0 = 9/10
-t_1 = t_0 - A - B
-t_2 = t_1 + A
-t_3 = t_2 + B
-print(f"t_0 = {t_0}")
-print(f"t_1 = {t_1}")
-print(f"t_2 = {t_2}")
-print(f"t_3 = {t_3}")
+def helper_function_diagrams(diagram=[['B','A'],['A','A'],['A','B']],iterations=15,start='A'):
+    word = start
+    for i in range(iterations):
+        last_char = word[len(word)-1]
+        while 1:
+            random_transition = diagram[random.randint(0,len(diagram)-1)]
+            if random_transition[0] == last_char:
+                word = word + random_transition[1]
+                break
+    return word
+def helper_function_derivate(input_string,rule='sandwich'):
+    output_string = ''
+    if rule == 'sandwich':
+        for i in range(1,len(input_string)-1):
+            if input_string[i-1] == input_string[i+1]:
+                output_string = output_string + input_string[i]
+    if rule == 'oneblock':
+        for i in range(len(input_string)):
+            if input_string[i] == input_string[i+1]:
+                output_string = output_string + input_string[i]
+    return output_string
